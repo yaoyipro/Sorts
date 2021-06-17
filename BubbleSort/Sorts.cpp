@@ -4,6 +4,37 @@
 #include <stdlib.h>
 using namespace std;
 
+class Node {
+public:
+    int value;
+    Node* next;
+};
+
+void Insert(Node** Bins, int n) {
+    struct Node* temp = (struct Node*)malloc(sizeof(struct Node));
+    temp->value = n;
+    temp->next = NULL;
+
+    if (Bins[n] == NULL) { // Bins[n] is head ptr
+        Bins[n] = temp;
+    }
+    else {
+        Node* p = Bins[n];
+        while (p->next != NULL) {
+            p = p->next;
+        }
+        p->next = temp;
+    }
+}
+
+int Delete(Node** Bins, int n) {
+    Node* p = Bins[n];  // Bins[n] is head ptr
+    Bins[n] = Bins[n]->next;
+    int x = p->value;
+    delete p;
+    return x;
+}
+
 void swap(int* x, int* y)
 {
     int temp;
@@ -188,7 +219,129 @@ void CountSort(int A[], int n)
     }
 }
 
+int countDigits(int x) {
+    int count = 0;
+    while (x != 0) {
+        x = x / 10;
+        count++;
+    }
+    return count;
+}
 
+void initializeBins(Node** p, int n) {
+    for (int i = 0; i < n; i++) {
+        p[i] = nullptr;
+    }
+}
+
+int getBinIndex(int x, int idx) {
+    return (int)(x / pow(10, idx)) % 10;
+}
+
+void RadixInsert(Node** ptrBins, int value, int idx) {
+    Node* temp = new Node;
+    temp->value = value;
+    temp->next = nullptr;
+
+    if (ptrBins[idx] == nullptr) {
+        ptrBins[idx] = temp;  // ptrBins[idx] is head ptr
+    }
+    else {
+        Node* p = ptrBins[idx];
+        while (p->next != nullptr) {
+            p = p->next;
+        }
+        p->next = temp;
+    }
+}
+
+
+void RadixSort(int A[], int n)
+{
+    int max = findMax(A, n);
+    int nPass = countDigits(max);
+
+    // Create bins array
+    Node** bins = new Node * [10];
+
+    // Initialize bins array with nullptr
+    initializeBins(bins, 10);
+
+    // Update bins and A for nPass times
+    for (int pass = 0; pass < nPass; pass++) {
+
+        // Update bins based on A values
+        for (int i = 0; i < n; i++) {
+            int binIdx = getBinIndex(A[i], pass);
+            RadixInsert(bins, A[i], binIdx);
+        }
+
+        // Update A with sorted elements from bin
+        int i = 0;
+        int j = 0;
+        while (i < 10) {
+            while (bins[i] != nullptr) {
+                A[j++] = Delete(bins, i);
+            }
+            i++;
+        }
+        // Initialize bins with nullptr again
+        initializeBins(bins, 10);
+    }
+
+    // Delete heap memory
+    delete[] bins;
+}
+
+void BinSort(int A[], int n)
+{
+    int max, i, j;
+    struct Node ** Bins;
+
+    max = findMax(A, n);
+    Bins = (struct Node**)malloc(sizeof(max+1));
+
+    for (i = 0; i < max + 1; i++)
+    {
+        Bins[i] = NULL;
+    }
+
+    for (i = 0; i < n; i++)
+    {
+        Insert(Bins, A[i]);
+    }
+
+    i = 0; j = 0;
+
+    while (i < max + 1)
+    {
+        while (Bins[i] != NULL)
+        {
+            A[j++] = Delete(Bins,i);
+        }
+        i++;
+    }
+}
+
+void ShellSort(int A[], int n)
+{
+    int gap, i, j, temp;
+
+    for (gap = n / 2; gap >= 1; gap /= 2)
+    {
+        for (i = gap; i < n; i++)
+        {
+            temp = A[i];
+            j = i - gap;
+            while (j >= 0 && A[j] > temp)
+            {
+                A[j + gap] = A[j];
+                j = j - gap;
+            }
+            A[j + gap] = temp;
+        }
+    }
+}
 
 int main()
 {
@@ -200,7 +353,10 @@ int main()
     //QuickSort(A, 0, n);
     //IMergeSort(A, n);
     //MergeSort(A, 0, n-1);
-    CountSort(A, n);
+    //CountSort(A, n);
+    //BinSort(A, n);
+    //RadixSort(A, n);
+    ShellSort(A, n);
 
     for (i = 0; i < n; i++)
     {
